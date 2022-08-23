@@ -1,0 +1,66 @@
+{
+    "name": "epmautomate",
+    "publisher": "vscode-essbase",
+    "displayName": "Oracle EPM Automate Language",
+    "description": "Syntax Highlighting for Oracle EPM AUTOMATE language",
+    "version": "0.0.1",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/phoch00/VSC-Language-EPMAutomate-2022"
+
+    },
+    "license": "SEE LICENSE IN LICENSE.md",
+    "bugs": {
+        "url": "https://github.com/phoch00/VSC-Language-EPMAutomate-2022/issues"
+    },
+    "icon": "images/cubelogo.png",
+    "galleryBanner": {
+        "color": "#6A92B1",
+        "theme": "dark"
+    },
+    "engines": {
+        "vscode": "^1.45.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+
+    "contributes": {
+        "languages": [{
+            "id": "epm",
+            "aliases": ["EPMAutomate", "epmauto"],
+            "extensions": [".epm"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "epmautomate",
+            "scopeName": "source.epmautomate",
+            "path": "./syntaxes/epm.tmLanguage.json"
+        }],
+        "snippets": [{
+            "language": "epm",
+            "path": "./snippets/epm.snippets.json"
+        }],
+        "configuration": {
+            "type": "object",
+            "title": "Oracle EPM Automate Script Language",
+            "properties": {
+                "csc.maxNumberOfProblems": {
+                    "type": "number",
+                    "default": 100,
+                    "description": "Controls the maximum number of problems produced by the server."
+                }
+            }
+        },
+        "configurationDefaults": {
+            "[epm]": {
+                "editor.tabSize": 4,
+                "editor.insertSpaces": false,
+                "editor.detectIndentation": true,
+                "editor.trimAutoWhitespace": true,
+                "editor.autoClosingBrackets": "always"
+            }
+        }
+    }
+
+}
