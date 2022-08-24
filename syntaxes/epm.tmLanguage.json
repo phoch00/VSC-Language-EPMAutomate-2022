@@ -1,0 +1,244 @@
+{
+	"name": "epmauto",
+	"filetypes": ["epm, bat"],
+	"scopeName": "source.epm",
+    "patterns": [{
+            "include": "#comments"
+        },
+        {
+            "include": "#punctuation"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#constants-and-special-vars"
+        },
+        {
+            "include": "#strings"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [{
+                    "name": "comment.block.empty.epm",
+                    "match": "/\\*\\*/",
+                    "captures": {
+                        "0": {
+                            "name": "punctuation.definition.comment.epm"
+                        }
+                    }
+                },
+                {
+                    "include": "#comments-inline"
+                }
+            ]
+        },
+        "comments-inline": {
+            "patterns": [{
+                    "include": "#comments-block"
+                },
+                {
+                    "match": "((//).*)$",
+                    "captures": {
+                        "1": {
+                            "name": "comment.line.double-slash.epm"
+                        }
+                    }
+                }
+            ]
+        },
+        "comments-block": {
+            "patterns": [{
+                "name": "comment.block.epm",
+                "begin": "/\\*",
+                "end": "\\*/",
+                "patterns": [{
+                    "include": "#comments-block"
+                }]
+            }]
+        },
+        "constants-and-special-vars": {
+            "patterns": [{
+                    "name": "constant.language.epm",
+                    "match": "(?i)(appAudit|applicationName|Attachments|AutoTune|BackgroundImage|Body|captureDebugScripts|clearAdjustmentValues|clearall|clearAllDataFlag|clearAllocatedValues|clearCalculatedData|clearData|clearInput|ClientID|comment|commentisKeepData|connection|copyType|createDestPOV|cubeName|DailyMaintenanceStartTime|dataFileName|dataFormat|dataLoadValue|DataManagement|dateFormat|disableEmergencyAccess|DisplayBusinessProcessName|duration|EmailNotification|encrypt|errorFile|EssbaseChange|excludeApplicationId|executeCalculations|exeType|exportErrorDetails|exportFormat|exportOnlyLevel0Flg|File|fileName|fileOutputOptions|fileType|filterOperator|filterValue|forceRun|format|FREQUENCY_DIMENSION|growthSizeRatio|importFolder|importFormat|importMode|importPermission|importUsers|includeAlternateRollups|includeHeader|isAdjustmentValues|isAllData|isAllInputData|isAllocatedValues|isApplicationOverwrite|isClearCalculated|isExecuteCalculations|isInputData|isManageRule|isReplaceCube|isRunNow|jobConsole|jobName|jobStatusCodes|jobtypes|keepDuplicateMemberFormat|keepZeroCells|key|KeystorePassword|lagTime|list|logFilename|LogoImage|memberFilters|modelViewName|names|nDays|nonEmptyTupleEnabled|optimizeForReporting|optimizeReporting|orgUnit|overwrite|paginatedDim|period|povDelimiter|Properties|ProxyServerUserName|queryName|RedwoodExperience|removeAll|removeZeroCells|Reopen|reportFormat|ResetJournals|resetPassword|resetWorkFlows|roundingPrecision|ruleName|Rules|ruleSetName|rulesetSeqNumEnd|rulesetSeqNumStart|Scenario|Screenshot|skipNext|SnapshotName|storedSnapshotsAndFiles|stringDelimiter|subsetEnd|subsetStart|targetName|Template|TempServiceType|Theme|timezone|trace|type|useAlias|useQueryData|userNames|userPassword|UsersAndPreDefinedRoles|userType|version|year)\\b"
+                },
+
+                
+                {
+                    "name": "constant.numeric.epm",
+                    "match": "(?<=[^$])((0(x|X)[0-9a-fA-F]+)|([0-9]+(\\.[0-9]+)?))"
+                },
+                {
+                    "include": "#function-identifier"
+                }
+            ]
+        },
+        "function-identifier": {
+            "patterns": [{
+                    "name": "entity.name.function.epm",
+					"match": "(?i)\\b(addUsers|addUsersToGroup|addUsersToTeam|addUserToGroups|applicationAdminMode|applyDataGrants|assignRole|autoPredict|calculateModel|clearCube|clearDataByPointOfView|clearDataByProfile|clearPOV|cloneEnvironment|copyDataByProfile|copyFileFromInstance|copyFromObjectStorage|copyOwnershipDataToNextYear|copyDataByPointOfView|copyPOV|copySnapshotFromInstance|copyToObjectStorage|createGroups|createNRSnapshot|createReconciliations|deleteFile|deleteGroups|deletePointOfView|deletePOV|deployCube|deployEJTemplates|deployFormTemplates|deployTaskManagerTemplate|dismissIPMInsights|downloadFile|enableApp|enableQueryTracking|encrypt|executeAggregationProcess|executeBurstDefinition|executeReportBurstingDefinition|exportAccessControl|exportAppAudit|exportAppSecurity|exportARApplicationProperties|exportBackgroundImage|exportCellLevelSecurity|exportData|exportDataManagement|exportDimension|exportDimensionMapping|exportEJJournals|exportJobConsole|exportLibraryArtifact|exportLogoImage|exportMapping|exportMetadata|exportOwnershipData|exportQueryResults|exportSnapshot|exportTemplate|exportTaskManagerAccessControl|exportValidIntersections|extractDimension|feedback|getApplicationAdminMode|getDailyMaintenanceStartTime|getIPAllowlist|getSubstVar|groupAssignmentAuditReport|help|importAppAudit|importAppSecurity|importARApplicationProperties|importBackgroundImage|importBalances|importCellLevelSecurity|importData|importDataManagement|importDimension|importJobConsole|importLibraryArtifact|importLogoImage|importMapping|importMetadata|importOwnershipData|importPreMappedBalances|importPreMappedTransactions|importProfiles|importRates|importReconciliationAttributes|importSnapshot|importSupplementalCollectionData|importSupplementalData|importTemplate|importValidIntersections|invalidLoginReport|listBackups|listFiles|loadData|loadDimData|login|logout|maskData|mergeDataSlices|mergeSlices|optimizeASOCube|programDocumentationReport|provisionReport|purgeTmTransactions|recomputeOwnershipData|recreate|refreshCube|removeUserFromGroups|removeUsers|removeUsersFromGroup|removeUsersFromTeam|renameSnapshot|replay|resetService|restoreBackup|restructureCube|roleAssignmentAuditReport|roleAssignmentReport|runAutomatch|runBatch|runBusinessRule|runCalc|runComplianceReport|runDailyMaintenance|runDataRule|runDMReport|runIntegration|runMatchingReport|runPlanTypeMap|runRuleSet|runSupplementalDataReport|runTaskManagerReport|sendMail|setDailyMaintenanceStartTime|setDemoDates|setEJJournalStatus|setEncryptionKey|setIPAllowlist|setManualDataAccess|setPeriodStatus|setSubstVars|skipUpdate|sortMember|unassignRole|updateUsers|upgrade|uploadFile|userAuditReport|userGroupReport|validateModel)\\b"
+                }
+
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.subvar.epm",
+                    "match": "(\\&[a-zA-Z0-9_]+)"
+                },
+                {
+                    "name": "keyword.operator.comparison.epm",
+                    "match": "(==|!=|<=|<|>=|>)"
+                },
+                {
+                    "name": "keyword.operator.assignment.arithmetic.epm",
+                    "match": "(([+*/%-]|\\~)=)"
+                },
+                {
+                    "name": "keyword.operator.assignment.epm",
+                    "match": "(=)"
+                },
+                {
+                    "name": "keyword.operator.crossdim.epm",
+                    "match": "(?:->)"
+                },
+				{
+					"comment": "Type Keywords",
+					"name": "keyword.other.epm",
+					"match": "(?i)\\b(\"Map and Validate\"|\"No Export\"|Accumulate|add|ADD_DATA|ADD_TO_EXISTING|ALL_DATA|ALL_RULES|Allow|Append|ARCS|ascending|BEX|Check|children|classic|contains|CSV|CSV2|descendants|descending|Direct|disable|EDMCS|enable|ends_with|EPRCS|equals|EXCEL|File|HTML|IDAdmins|inbox|INPUT|LCM|Merge|Native|NONE|not_contains|not_equals|outbox|OVERWRITE_EXISTING_VALUES|PCMCS|PDF|profitinbox|profitoutbox|RECALCULATE|remove|Replace|REPLACE_DATA|Revoke|RULESET_SUBSET|serviceUsers|simplified|SINGLE_RULE|SRC|starts_with|STORE_DATA|SUB|Subtract|SUBTRACT_DATA|TEXT_ONLY|to_be_imported|VEX|WORD|XLS|XLSX|ZIP_AND_TEXT|ZIP_ONLY|FALSE|TRUE)\\b"
+				}
+
+            ]
+        },
+        "string-interp": {
+            "patterns": [{
+                    "match": "(\\$[a-zA-Z0-9_]+)",
+                    "captures": {
+                        "1": {
+                            "name": "variable.parameter.epm"
+                        }
+                    }
+                },
+                {
+                    "name": "string.interpolated.expression.epm",
+                    "begin": "\\(",
+                    "end": "\\)",
+                    "patterns": [{
+                            "include": "#keyword.control.epm"
+                        },
+
+                        {
+                            "include": "#function-identifier"
+                        },
+                        {
+                            "include": "#strings"
+                        },
+                        {
+                            "include": "#constants-and-special-vars",
+                            "name": "variable.parameter.epm"
+                        },
+                        {
+                            "name": "variable.parameter.epm",
+                            "match": "(\\$[a-zA-Z0-9_]+)"
+                        }
+                    ]
+                },
+                {
+                    "name": "constant.character.escape.epm",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [{
+                    "name": "string.interpolated.triple.double.epm",
+                    "begin": "(?<!r)\"\"\"",
+                    "end": "\"\"\"(?!\")",
+                    "patterns": [{
+                        "include": "#string-interp"
+                    }]
+                },
+                {
+                    "name": "string.interpolated.triple.single.epm",
+                    "begin": "(?<!r)'''",
+                    "end": "'''(?!')",
+                    "patterns": [{
+                        "include": "#string-interp"
+                    }]
+                },
+                {
+                    "name": "string.quoted.triple.double.epm",
+                    "begin": "r\"\"\"",
+                    "end": "\"\"\"(?!\")"
+                },
+                {
+                    "name": "string.quoted.triple.single.epm",
+                    "begin": "r'''",
+                    "end": "'''(?!')"
+                },
+                {
+                    "name": "string.interpolated.double.epm",
+                    "begin": "(?<!\\|r)\"",
+                    "end": "\"",
+                    "patterns": [{
+                            "name": "invalid.string.newline",
+                            "match": "\\n"
+                        },
+                        {
+                            "include": "#string-interp"
+                        }
+                    ]
+                },
+                {
+                    "name": "string.quoted.double.epm",
+                    "begin": "r\"",
+                    "end": "\"",
+                    "patterns": [{
+                        "name": "invalid.string.newline",
+                        "match": "\\n"
+                    }]
+                },
+                {
+                    "name": "string.interpolated.single.epm",
+                    "begin": "(?<!\\|r)'",
+                    "end": "'",
+                    "patterns": [{
+                            "name": "invalid.string.newline",
+                            "match": "\\n"
+                        },
+                        {
+                            "include": "#string-interp"
+                        }
+                    ]
+                },
+                {
+                    "name": "string.quoted.single.epm",
+                    "begin": "r'",
+                    "end": "'",
+                    "patterns": [{
+                        "name": "invalid.string.newline",
+                        "match": "\\n"
+                    }]
+                }
+            ]
+        },
+        "punctuation": {
+            "patterns": [{
+                    "name": "punctuation.comma.epm",
+                    "match": ","
+                },
+                {
+                    "name": "punctuation.terminator.epm",
+                    "match": ";"
+                },
+                {
+                    "name": "punctuation.dot.epm",
+                    "match": "\\."
+                }
+
+            ]
+        }
+    }
+}
