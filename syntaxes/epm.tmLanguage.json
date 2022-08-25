@@ -61,15 +61,19 @@
         "constants-and-special-vars": {
             "patterns": [{
                     "name": "constant.language.epm",
-                    "match": "(?i)(appAudit|applicationName|Attachments|AutoTune|BackgroundImage|Body|captureDebugScripts|clearAdjustmentValues|clearall|clearAllDataFlag|clearAllocatedValues|clearCalculatedData|clearData|clearInput|ClientID|comment|commentisKeepData|connection|copyType|createDestPOV|cubeName|DailyMaintenanceStartTime|dataFileName|dataFormat|dataLoadValue|DataManagement|dateFormat|disableEmergencyAccess|DisplayBusinessProcessName|duration|EmailNotification|encrypt|errorFile|EssbaseChange|excludeApplicationId|executeCalculations|exeType|exportErrorDetails|exportFormat|exportOnlyLevel0Flg|File|fileName|fileOutputOptions|fileType|filterOperator|filterValue|forceRun|format|FREQUENCY_DIMENSION|growthSizeRatio|importFolder|importFormat|importMode|importPermission|importUsers|includeAlternateRollups|includeHeader|isAdjustmentValues|isAllData|isAllInputData|isAllocatedValues|isApplicationOverwrite|isClearCalculated|isExecuteCalculations|isInputData|isManageRule|isReplaceCube|isRunNow|jobConsole|jobName|jobStatusCodes|jobtypes|keepDuplicateMemberFormat|keepZeroCells|key|KeystorePassword|lagTime|list|logFilename|LogoImage|memberFilters|modelViewName|names|nDays|nonEmptyTupleEnabled|optimizeForReporting|optimizeReporting|orgUnit|overwrite|paginatedDim|period|povDelimiter|Properties|ProxyServerUserName|queryName|RedwoodExperience|removeAll|removeZeroCells|Reopen|reportFormat|ResetJournals|resetPassword|resetWorkFlows|roundingPrecision|ruleName|Rules|ruleSetName|rulesetSeqNumEnd|rulesetSeqNumStart|Scenario|Screenshot|skipNext|SnapshotName|storedSnapshotsAndFiles|stringDelimiter|subsetEnd|subsetStart|targetName|Template|TempServiceType|Theme|timezone|trace|type|useAlias|useQueryData|userNames|userPassword|UsersAndPreDefinedRoles|userType|version|year)\\b"
+                    "match": "(?i)(appAudit|applicationName|Attachments|AutoTune|BackgroundImage|Body|captureDebugScripts|clearAdjustmentValues|clearall|clearAllDataFlag|clearAllocatedValues|clearCalculatedData|clearData|clearInput|ClientID|comment|commentisKeepData|connection|copyType|createDestPOV|cubeName|DailyMaintenanceStartTime|dataFileName|dataFormat|dataLoadValue|DataManagement|dateFormat|disableEmergencyAccess|DisplayBusinessProcessName|duration|EmailNotification|encrypt|errorFile|EssbaseChange|excludeApplicationId|executeCalculations|exeType|exportErrorDetails|exportFormat|exportOnlyLevel0Flg|File|fileName|fileOutputOptions|fileType|filterOperator|filterValue|forceRun|format|FREQUENCY_DIMENSION|growthSizeRatio|importFolder|importFormat|importMode|importPermission|importUsers|includeAlternateRollups|includeHeader|isAdjustmentValues|isAllData|isAllInputData|isAllocatedValues|isApplicationOverwrite|isClearCalculated|isExecuteCalculations|isInputData|isManageRule|isReplaceCube|isRunNow|jobConsole|jobName|jobStatusCodes|jobtypes|keepDuplicateMemberFormat|keepZeroCells|key|KeystorePassword|lagTime|list|logFilename|LogoImage|memberFilters|modelViewName|names|nDays|nonEmptyTupleEnabled|optimizeForReporting|optimizeReporting|orgUnit|overwrite|paginatedDim|period|povDelimiter|Properties|ProxyServerUserName|queryName|RedwoodExperience|removeAll|removeZeroCells|Reopen|reportFormat|ResetJournals|resetPassword|resetWorkFlows|roundingPrecision|ruleName|Rules|ruleSetName|rulesetSeqNumEnd|rulesetSeqNumStart|Scenario|Screenshot|skipNext|SnapshotName|storedSnapshotsAndFiles|stringDelimiter|subsetEnd|subsetStart|targetName|Template|TempServiceType|Theme|timezone|trace|type|useAlias|useQueryData|userNames|userPassword|UsersAndPreDefinedRoles|userType|version)\\b"
                 },
                 {
                     "name": "constant.numeric.epm",
                     "match": "(?<=[^$])((0(x|X)[0-9a-fA-F]+)|([0-9]+(\\.[0-9]+)?))"
                 },
                 {
-                    "name": "constant.flags.epm",
+                    "name": "constant.slashflags.epm",
                     "match": "(?i)(\\/[a-z])\\b"
+                },
+                {
+                    "name": "constant.dashflags.epm",
+                    "match": "(?i)(\\-[a-z]{1,4})\\b"
                 },
 
                 {
@@ -121,7 +125,7 @@
 				},{
                     "comment": "Batch Keywords",
                     "name": "keyword.batch.epm",
-                    "match": "(?i)\\b(IN|TOKENS|DELIMS|nul|>>|ON)\\b"
+                    "match": "(?i)\\b(IN|TOKENS|DELIMS|nul|>>|OFF|ON)\\b"
                 }
 
             ]
