@@ -27,18 +27,18 @@
 
     "contributes": {
         "languages": [{
-            "id": "epm",
-            "aliases": ["EPMAutomate", "epmauto"],
+            "id": "epmautomate",
+            "aliases": ["epmautomate", "epmauto", "epm"],
             "extensions": [".epm"],
             "configuration": "./language-configuration.json"
         }],
         "grammars": [{
             "language": "epmautomate",
-            "scopeName": "source.epmautomate",
+            "scopeName": "source.epm",
             "path": "./syntaxes/epm.tmLanguage.json"
         }],
         "snippets": [{
-            "language": "epm",
+            "language": "epmautomate",
             "path": "./snippets/epm.snippets.json"
         }],
         "configuration": {
