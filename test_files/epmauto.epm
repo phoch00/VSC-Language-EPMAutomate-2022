@@ -1,21 +1,11 @@
-@Echo off
 
 REM ************************************************
-REM ** Author:  Paul Hoch
-REM ** Purpose: This sets subs vars
+REM ** Author:	Paul Hoch
+REM ** Code Samples for EPM Automate
+REM ** Testin Language Extension
 REM ************************************************
 
-SETLOCAL ENABLEDELAYEDEXPANSION
-REM Set Global Variables
-CALL _Global.bat !RANDOM! %~n0
-
-SET PROCESS_NAME="Production Cloud Set Sub Vars"
-
-REM Log Cleanup
-cd %PATH_LOGS%\Archive
-%ZIP% a -sdel "LOG_ARCHIVE_%~n0_%TIMESTAMP%.zip" %PATH_LOGS%\%~n0*.log 1>nul
-REM Keep the last 50 runs
-for /f "skip=50 eol=: delims=" %%F in ('dir /b /o-d *.zip') do @del "%%F" 1>nul
+@echo off
 
 cd %PATH_SCRIPTS%
 
@@ -27,112 +17,16 @@ ECHO: >> %FILE_PROCLOG%
 REM Login
 ECHO *** Logging In: %PBCS_USER% >> %FILE_OUTLOG%
 %EPMAUTO% login %PBCS_USER% %PBCS_PASSFILE% %PBCS_URL% %PBCS_DOMAIN% >> %FILE_OUTLOG%
-
 CALL _ProcLogger.bat %ErrorLevel% Login
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
-
-REM Get Current Date to Sub Vars 
-for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
-set "YY=%dt:~2,2%" & set "MM=%dt:~4,2%"
-
-set "curryear=FY%YY%"
-
-set /a prevyear=%YY% - 1
-set prevyear=FY%prevyear%
-
-set "monthnum=%MM%"
-
-if %monthnum%==01 set monthvar=Dec & set yearvar=%prevyear%
-if %monthnum%==02 set monthvar=Jan & set yearvar=%curryear%
-if %monthnum%==03 set monthvar=Feb & set yearvar=%curryear%
-if %monthnum%==04 set monthvar=Mar & set yearvar=%curryear%
-if %monthnum%==05 set monthvar=Apr & set yearvar=%curryear%
-if %monthnum%==06 set monthvar=May & set yearvar=%curryear%
-if %monthnum%==07 set monthvar=Jun & set yearvar=%curryear%
-if %monthnum%==08 set monthvar=Jul & set yearvar=%curryear%
-if %monthnum%==09 set monthvar=Aug & set yearvar=%curryear%
-if %monthnum%==10 set monthvar=Sep & set yearvar=%curryear%
-if %monthnum%==11 set monthvar=Oct & set yearvar=%curryear%
-if %monthnum%==12 set monthvar=Nov & set yearvar=%curryear%
-
-REM Set Sub Vars
-ECHO *** Setting SubVar >> %FILE_OUTLOG%
-ECHO Month to set is: %monthvar% >> %FILE_OUTLOG%
-ECHO Year to set is: %yearvar% >> %FILE_OUTLOG%
-ECHO
-%EPMAUTO% setSubstVars ALL CurrentMonth=%monthvar% CurrentYear=%yearvar% >> %FILE_OUTLOG%
-CALL _ProcLogger.bat %ErrorLevel% SetVars
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO It was set to Month: %monthvar% >> %FILE_OUTLOG%
-ECHO It was set to Year: %yearvar% >> %FILE_OUTLOG%
-
-
-ECHO: >> %FILE_OUTLOG%
-
-REM Logout & Exit
-ECHO *** Logging Out: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% logout >> %FILE_OUTLOG%
-CALL _ProcLogger.bat %ErrorLevel% Logout
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-
-ENDLOCAL
-EXIT /b 0
-
-:ERROR
-Powershell.exe -executionpolicy remotesigned -File %PATH_SCRIPTS%\MailNotification.ps1 %PROCESS_NAME%
-EXIT /b %ErrorLevel%
-
-@echo off
-
-REM Run Backup Export
-REM echo -- Running Export... >> %FILE_OUTLOG%
-REM %EPMAUTO% exportsnapshot %HP_BKUP_FILE% >> %FILE_OUTLOG%
-REM IF %ErrorLevel% NEQ 0 EXIT /b %ErrorLevel%
-
-REM Rename the Snapshot First
-SET TARGETNAME=%HP_BKUP_FILE%_%APPNAME%_%TIMESTAMP%
-
-%EPMAUTO% renameSnapshot %HP_BKUP_FILE% %TARGETNAME%
-IF %ErrorLevel% NEQ 0 EXIT /b %ErrorLevel%
 
 REM Download File
 echo -- Downloading File... >> %FILE_OUTLOG%
 %EPMAUTO% downloadfile %TARGETNAME% >> %FILE_OUTLOG%
 IF %ErrorLevel% NEQ 0 EXIT /b %ErrorLevel%
 
-REM File Downloads to Script Directory... Rename & Move
 MOVE %TARGETNAME%.zip %PATH_BACKUPS%\%APPNAME%_BACKUP_%TIMESTAMP%.zip 1>nul
-
-REM Archive Cleanup - Keep only the Last 15
-cd %PATH_BACKUPS%
-for /f "skip=15 eol=: delims=" %%F in ('dir /b /o-d *.zip') do @del "%%F"
-cd %PATH_SCRIPTS%
-
-REM Log has an entry for every KB recieved (could get very long) parse out the noise in the OUTLOG
-type %FILE_OUTLOG% | findstr /v KB > %PATH_LOGS%\Temp.log 2>nul
-MOVE %PATH_LOGS%\Temp.log %FILE_OUTLOG% 1>nul
-
-
-EXIT /b 0
-
-
-@Echo off
-
-REM ************************************************
-REM ** Author:	Paul Hoch
-REM ** Purpose:	Reset Planning Apps
-REM ************************************************
-
-
-
-SETLOCAL ENABLEDELAYEDEXPANSION
-REM Set Global Variables
-CALL _Global.bat !RANDOM! %~n0
-
-SET PROCESS_NAME="PROD Optimize PBCS"
 
 REM Log Cleanup
 cd %PATH_LOGS%\Archive
@@ -154,7 +48,6 @@ ECHO *** Logging In: %PBCS_USER% >> %FILE_OUTLOG%
 CALL  _ProcLogger.bat %ErrorLevel% Login
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
-
 
 ECHO *** Restructure Cube >> %FILE_PROCLOG%
 %EPMAUTO% restructureCube  PBCS
@@ -168,59 +61,6 @@ CALL  _ProcLogger.bat %ErrorLevel% Reset
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
 
-
-REM Logout & Exit
-ECHO *** Logging Out: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% logout >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% Logout
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-Powershell.exe -executionpolicy remotesigned -File %PATH_SCRIPTS%\MailNotification.ps1 %PROCESS_NAME% "S"
-
-
-ENDLOCAL
-EXIT /b 0
-
-:ERROR
-Powershell.exe -executionpolicy remotesigned -File %PATH_SCRIPTS%\MailNotification.ps1 %PROCESS_NAME%
-EXIT /b %ErrorLevel%
-
-@Echo off
-
-REM ************************************************
-REM ** Author:  Paul Hoch
-REM ** Date:    Dec 13 2021
-REM ** Purpose: This is the main driver that will call each batch step
-REM ************************************************
-
-SETLOCAL ENABLEDELAYEDEXPANSION
-REM Set Global Variables
-CALL  _Global.bat !RANDOM! %~n0
-
-SET PROCESS_NAME="Production Cloud  PBCS Actual Data Load"
-
-REM Log Cleanup
-cd %PATH_LOGS%\Archive
-%ZIP% a -sdel "LOG_ARCHIVE_%~n0_%TIMESTAMP%.zip" %PATH_LOGS%\%~n0*.log 1>nul
-REM Keep the last 50 runs
-for /f "skip=50 eol=: delims=" %%F in ('dir /b /o-d *.zip') do @del "%%F" 1>nul
-
-cd %PATH_SCRIPTS%
-
-REM Echo Start Time to Process Log
-ECHO PROCESS START TIME:    %TIMESTAMP% >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-
-REM Login
-ECHO *** Logging In: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% login %PBCS_USER% %PBCS_PASSFILE% % PBCS_URL% %PBCS_DOMAIN% >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% Login
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
 REM Get period from SubVars
 ECHO *** Getting SubVar >> %FILE_OUTLOG%
 %EPMAUTO% getsubstvar ALL name=CurrentMonth >> %FILE_OUTLOG%
@@ -228,40 +68,18 @@ CALL  _ProcLogger.bat %ErrorLevel% SubVars
 ECHO: >> %FILE_OUTLOG%
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 
-%EPMAUTO% getsubstvar ALL name=CurrentYear >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% SubVars
-ECHO: >> %FILE_OUTLOG%
-IF %ErrorLevel% NEQ 0 GOTO ERROR
 
-REM Get Var Values from Log
 for /F "delims=" %%a in ('findstr /I "CurrentMonth" %FILE_OUTLOG%') do set "DM_MONTH=%%a"
 for /F "delims=" %%a in ('findstr /I "CurrentYear" %FILE_OUTLOG%') do set "DM_YEAR=%%a"
 SET DM_PERIOD=%DM_YEAR:~-4,4%_%DM_MONTH:~-3,3%
-ECHO %DM_PERIOD%
 
 CALL  _ProcLogger.bat %ErrorLevel% SubVars
 ECHO: >> %FILE_OUTLOG%
 
-REM Clear data Actuals
-ECHO *** Clearing Actuals Data >> %FILE_OUTLOG%
-%EPMAUTO% runBusinessRule "WARNING: Clear Actual Month" >> %FILE_OUTLOG%
 
-CALL  _ProcLogger.bat %ErrorLevel% ClrMonth
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Load Data - These are single period files so using START_PERIOD as both the start and end periods
-ECHO *** Running Data Load for ACT >> %FILE_OUTLOG%
 %EPMAUTO% rundatarule DL_Actual.Final %DM_PERIOD% %DM_PERIOD% REPLACE STORE_DATA >> %FILE_OUTLOG%
 
 CALL  _ProcLogger.bat %ErrorLevel% LoadData
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Populate Reporting Currencies
-ECHO *** Moving Input to Reporting >> %FILE_OUTLOG%
-%EPMAUTO% runBusinessRule "Currency: Copy Actual Month Input to Reporting" >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% CopyData
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
 
@@ -280,72 +98,7 @@ EXIT /b 0
 Powershell.exe -executionpolicy remotesigned -File %PATH_SCRIPTS%\MailNotification.ps1 %PROCESS_NAME%
 EXIT /b %ErrorLevel%
 
-
-@Echo off
-
-REM ************************************************
-REM ** Author:  Paul Hoch
-REM ************************************************
-
-SETLOCAL ENABLEDELAYEDEXPANSION
-REM Set Global Variables
-CALL  _Global.bat !RANDOM! %~n0
-
-SET PROCESS_NAME="Production Cloud SmartPush Budget And Forecast"
-
-REM Log Cleanup
-cd %PATH_LOGS%\Archive
-%ZIP% a -sdel "LOG_ARCHIVE_%~n0_%TIMESTAMP%.zip" %PATH_LOGS%\%~n0*.log 1>nul
-
-REM Keep the last 50 runs
-for /f "skip=50 eol=: delims=" %%F in ('dir /b /o-d *.zip') do @del "%%F" 1>nul
-
-cd %PATH_SCRIPTS%
-
-REM Echo Start Time to Process Log
-ECHO PROCESS START TIME:    %TIMESTAMP% >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-
-REM Login
-ECHO *** Logging In: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% login %PBCS_USER% %PBCS_PASSFILE% % PBCS_URL% %PBCS_DOMAIN% >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% Login
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Currency Conversion Script
-ECHO *** Currency Conversion for All Data to catch up >> %FILE_OUTLOG%
-%EPMAUTO% runBusinessRule "Admin: Fcst and Budget Currency Conversion" >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% CConv Currency
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Run Smart Pushes
-ECHO *** Smart Push Budget And Forecast Data >> %FILE_OUTLOG%
-
 %EPMAUTO% runPlanTypeMap " PBCS to  PBCS_FCST" clearData=True >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% CopyData
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-%EPMAUTO% runPlanTypeMap "PBCS to PBCS_BUD" clearData=True >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% CopyData
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-%EPMAUTO% runBusinessRule "Groovy: SmartPush Bud and Fcst" >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% CopyData
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-%EPMAUTO% runPlanTypeMap " PBCS_2_PBCS_Comments" clearData=True >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% CopyData
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-%EPMAUTO% runPlanTypeMap " PBCS_2_Comments" clearData=True >> %FILE_OUTLOG%
 CALL  _ProcLogger.bat %ErrorLevel% CopyData
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
@@ -354,268 +107,13 @@ REM RUN CALCS
 ECHO "Agg ASO" >> %FILE_OUTLOG%
 %EPMAUTO% mergeDataSlices  PBCS keepZeroCells=false >> %FILE_OUTLOG%
 
-CALL  _ProcLogger.bat %ErrorLevel% AggFIN
+CALL  _ProcLogger.bat %ErrorLevel% AggASO
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
 
 %EPMAUTO% executeAggregationProcess  PBCS useQueryData=false includeAlternaterollups=enable growthSizeRatio=10.0 >> %FILE_OUTLOG%
 
-CALL  _ProcLogger.bat %ErrorLevel% AggFIN
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-ECHO "Agg ASO" >> %FILE_OUTLOG%
-%EPMAUTO% mergeDataSlices ASORPT keepZeroCells=false >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% AggGPC
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-%EPMAUTO% executeAggregationProcess ASORPT useQueryData=false includeAlternaterollups=enable growthSizeRatio=10.0 >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% ASORPT
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-
-REM Logout & Exit
-ECHO *** Logging Out: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% logout >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% Logout
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-ENDLOCAL
-EXIT /b 0
-
-:ERROR
-Powershell.exe -executionpolicy remotesigned -File %PATH_SCRIPTS%\MailNotification.ps1 %PROCESS_NAME%
-EXIT /b %ErrorLevel%
-
-@Echo off
-
-REM ************************************************
-REM ** Author:  Paul Hoch
-REM ************************************************
-
-SETLOCAL ENABLEDELAYEDEXPANSION
-REM Set Global Variables
-CALL  _Global.bat !RANDOM! %~n0
-
-SET PROCESS_NAME="Production Cloud PLN to RPT SmartPush"
-
-REM Log Cleanup
-cd %PATH_LOGS%\Archive
-%ZIP% a -sdel "LOG_ARCHIVE_%~n0_%TIMESTAMP%.zip" %PATH_LOGS%\%~n0*.log 1>nul
-REM Keep the last 50 runs
-for /f "skip=50 eol=: delims=" %%F in ('dir /b /o-d *.zip') do @del "%%F" 1>nul
-
-cd %PATH_SCRIPTS%
-
-REM Echo Start Time to Process Log
-ECHO PROCESS START TIME:    %TIMESTAMP% >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-
-REM Login
-ECHO *** Logging In: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% login %PBCS_USER% %PBCS_PASSFILE% %PBCS_URL% %PBCS_DOMAIN% >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% Login
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-
-REM Run Smart Push
-%EPMAUTO% runPlanTypeMap "PLN to RPT" clearData=True >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% SmartPush
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-
-REM RUN CALCS
-ECHO "Agg ASO" >> %FILE_OUTLOG%
-%EPMAUTO% mergeDataSlices RPT keepZeroCells=false >> %FILE_OUTLOG%
-
 CALL  _ProcLogger.bat %ErrorLevel% Agg
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-%EPMAUTO% executeAggregationProcess RPT useQueryData=false includeAlternaterollups=enable growthSizeRatio=10.0 >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% Agg
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Logout & Exit
-ECHO *** Logging Out: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% logout >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% Logout
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-ENDLOCAL
-EXIT /b 0
-
-:ERROR
-Powershell.exe -executionpolicy remotesigned -File %PATH_SCRIPTS%\MailNotification.ps1 %PROCESS_NAME%
-EXIT /b %ErrorLevel%
-
-@Echo off
-
-REM ************************************************
-REM ** Author:  Paul Hoch
-REM ************************************************
-
-SETLOCAL ENABLEDELAYEDEXPANSION
-REM Set Global Variables
-CALL  _Global.bat !RANDOM! %~n0
-
-SET PROCESS_NAME="Production Cloud RPT Actuals Data Load"
-
-REM Log Cleanup
-cd %PATH_LOGS%\Archive
-%ZIP% a -sdel "LOG_ARCHIVE_%~n0_%TIMESTAMP%.zip" %PATH_LOGS%\%~n0*.log 1>nul
-REM Keep the last 50 runs
-for /f "skip=50 eol=: delims=" %%F in ('dir /b /o-d *.zip') do @del "%%F" 1>nul
-
-cd %PATH_SCRIPTS%
-
-REM Echo Start Time to Process Log
-ECHO PROCESS START TIME:    %TIMESTAMP% >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-
-REM Login
-ECHO *** Logging In: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% login %PBCS_USER% %PBCS_PASSFILE% %PBCS_URL% %PBCS_DOMAIN% >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% Login
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Get period from SubVars
-ECHO *** Getting SubVar >> %FILE_OUTLOG%
-%EPMAUTO% getsubstvar ALL name=CurrentMonth >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% SubVars
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-%EPMAUTO% getsubstvar ALL name=CurrentYear >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% SubVars
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Get Var Values from Log
-for /F "delims=" %%a in ('findstr /I "CurrentMonth" %FILE_OUTLOG%') do set "DM_MONTH=%%a"
-for /F "delims=" %%a in ('findstr /I "CurrentYear" %FILE_OUTLOG%') do set "DM_YEAR=%%a"
-SET DM_PERIOD=%DM_YEAR:~-4,4%_%DM_MONTH:~-3,3%
-ECHO %DM_PERIOD%
-CALL  _ProcLogger.bat %ErrorLevel% SubVars
-ECHO: >> %FILE_OUTLOG%
-
-REM Clear data Actuals
-ECHO *** Clearing Actuals Data >> %FILE_OUTLOG%
-%EPMAUTO% runBusinessRule "WARNING: Clear Actual Month" >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% ClrMonth
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Load Data - These are single period files so using START_PERIOD as both the start and end periods
-ECHO *** Running Data Load for ACT >> %FILE_OUTLOG%
-%EPMAUTO% rundatarule DL_AUMRPT_HYPFDR %DM_PERIOD% %DM_PERIOD% REPLACE STORE_DATA >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% LoadData
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM RUN CALCS
-ECHO "Agg ASO" >> %FILE_OUTLOG%
-%EPMAUTO% mergeDataSlices RPT keepZeroCells=false >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% Agg
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-%EPMAUTO% executeAggregationProcess RPT useQueryData=false includeAlternaterollups=enable growthSizeRatio=5.0 >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% Agg
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Logout & Exit
-ECHO *** Logging Out: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% logout >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% Logout
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-
-ENDLOCAL
-EXIT /b 0
-
-:ERROR
-Powershell.exe -executionpolicy remotesigned -File %PATH_SCRIPTS%\MailNotification.ps1 %PROCESS_NAME%
-EXIT /b %ErrorLevel%
-
-
-@Echo off
-
-REM ************************************************
-REM ** Author:  Paul Hoch
-REM ** Date:    Aug 137 2022
-REM ** Purpose: Export and download Budget
-REM ************************************************
-
-SETLOCAL ENABLEDELAYEDEXPANSION
-REM Set Global Variables
-CALL  _Global.bat !RANDOM! %~n0
-
-SET PROCESS_NAME="Test Cloud  PBCS Export Bud"
-
-REM Echo Start Time to Process Log
-ECHO PROCESS START TIME:    %TIMESTAMP% >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-
-REM Log Cleanup
-ECHO "ZIP and Archive Old Logs" >> %FILE_OUTLOG%
-
-cd %PATH_LOGS%\Archive
-%ZIP% a -sdel "LOG_ARCHIVE_%~n0_%TIMESTAMP%.zip" %PATH_LOGS%\%~n0*.log
-REM Keep the last 50 runs
-for /f "skip=50 eol=: delims=" %%F in ('dir /b /o-d *.zip') do @del "%%F"
-
-cd %PATH_SCRIPTS%
-
-ECHO "Cleanup Leftover Files" >> %FILE_OUTLOG%
-REM File Cleanups
-
-IF EXIST Allbudget.zip (
-	del Allbudget.zip
-)
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-IF EXIST ExportedData_Account.1-1.txt (
-	del ExportedData_Account.1-1.txt
-
-)
-
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-IF EXIST Export_ PBCS_Lev0_Budget_Cloud_EPM.txt (
-	del Export_ PBCS_Lev0_Budget_Cloud_EPM.txt
-)
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-
-REM Login
-ECHO *** Logging In: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% login %PBCS_USER% %PBCS_PASSFILE% % PBCS_URL% %PBCS_DOMAIN% >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% Login
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
 
@@ -645,7 +143,7 @@ ECHO: >> %FILE_OUTLOG%
 
 ECHO "Rename Files"  >> %FILE_OUTLOG%
 
-RENAME ExportedData_Account.1-1.txt Export_ PBCS_Lev0_Budget_Cloud_EPM.txt
+RENAME ExportedData.txt Export_PBCS_Lev0_Budget_Cloud.txt
 
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
@@ -653,7 +151,7 @@ ECHO: >> %FILE_OUTLOG%
 REM MOVING FILES
 ECHO "Moving Files" >> %FILE_OUTLOG%
 
-MOVE Export_ PBCS_Lev0_Budget_Cloud_EPM.txt Export_ PBCS_Lev0_Budget_Cloud_EPM.txt >> %FILE_OUTLOG%
+MOVE Export_PBCS_Lev0_Budget_Cloud.txt Export_PBCS_Lev0_Budget_Cloud.txt >> %FILE_OUTLOG%
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
 
@@ -671,364 +169,16 @@ IF EXIST Allbudget.zip (
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
 
-IF EXIST ExportedData_Account.1-1.txt (
-	del ExportedData_Account.1-1.txt
+IF EXIST ExportedData.txt (
+	del ExportedData.txt
 
 )
 
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
 
-IF EXIST Export_ PBCS_Lev0_Budget_Cloud_EPM.txt (
-	del Export_ PBCS_Lev0_Budget_Cloud_EPM.txt
+IF EXIST Export_PBCS_Lev0_Budget_Cloud.txt (
+	del Export_PBCS_Lev0_Budget_Cloud.txt
 )
 IF %ErrorLevel% NEQ 0 GOTO ERROR
 ECHO: >> %FILE_OUTLOG%
-
-
-REM Logout & Exit
-ECHO *** Logging Out: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% logout >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% Logout
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-Powershell.exe -executionpolicy remotesigned -File %PATH_SCRIPTS%\MailNotification.ps1 %PROCESS_NAME% "S"
-
-ENDLOCAL
-EXIT /b 0
-
-:ERROR
-Powershell.exe -executionpolicy remotesigned -File %PATH_SCRIPTS%\MailNotification.ps1 %PROCESS_NAME%
-EXIT /b %ErrorLevel%
-
-@Echo off
-
-REM ************************************************
-REM ** Author:  Paul Hoch
-REM ************************************************
-
-SETLOCAL ENABLEDELAYEDEXPANSION
-REM Set Global Variables
-CALL  _Global.bat !RANDOM! %~n0
-
-SET PROCESS_NAME="Production Cloud Prod Processing Data"
-
-REM Log Cleanup
-cd %PATH_LOGS%\Archive
-%ZIP% a -sdel "LOG_ARCHIVE_%~n0_%TIMESTAMP%.zip" %PATH_LOGS%\%~n0*.log 1>nul
-REM Keep the last 50 runs
-for /f "skip=50 eol=: delims=" %%F in ('dir /b /o-d *.zip') do @del "%%F" 1>nul
-
-cd %PATH_SCRIPTS%
-
-REM Echo Start Time to Process Log
-ECHO PROCESS START TIME:    %TIMESTAMP% >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-
-REM Login
-ECHO *** Logging In: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% login %PBCS_USER% %PBCS_PASSFILE% %URL% %PBCS_DOMAIN% >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% Login
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Get period from SubVars
-ECHO *** Getting SubVar >> %FILE_OUTLOG%
-%EPMAUTO% getsubstvar ALL name=CurrentMonth >> %FILE_OUTLOG%
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-
-%EPMAUTO% getsubstvar ALL name=CurrentYear >> %FILE_OUTLOG%
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-
-REM Get Var Values from Log
-for /F "delims=" %%a in ('findstr /I "CurrentMonth" %FILE_OUTLOG%') do set "DM_MONTH=%%a"
-for /F "delims=" %%a in ('findstr /I "CurrentYear" %FILE_OUTLOG%') do set "DM_YEAR=%%a"
-SET DM_PERIOD=%DM_YEAR:~-4,4%_%DM_MONTH:~-3,3%
-ECHO %DM_PERIOD%
-
-CALL  _ProcLogger.bat %ErrorLevel% SubVars
-ECHO: >> %FILE_OUTLOG%
-
-REM Clear data Actuals
-ECHO *** Clearing Actuals Data >> %FILE_OUTLOG%
-%EPMAUTO% runBusinessRule "C_Clr" >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% DataClear
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Load Data - These are single period files so using START_PERIOD as both the start and end periods
-ECHO *** Running Data Load for ACT >> %FILE_OUTLOG%
-%EPMAUTO% rundatarule DL_ACTPER %DM_PERIOD% %DM_PERIOD% REPLACE STORE_DATA >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% LoadData
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-
-REM Load Data - These are single period files so using START_PERIOD as both the start and end periods
-ECHO *** Running Data Load for ACT >> %FILE_OUTLOG%
-%EPMAUTO% rundatarule DL_2 %DM_PERIOD% %DM_PERIOD% REPLACE STORE_DATA >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% LoadData
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM RUN CALCS
-ECHO "Running Calcs"  >> %FILE_OUTLOG%
-
-%EPMAUTO% runBusinessRule "C_2" >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% Agg
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-%EPMAUTO% runBusinessRule "C_0A" >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% Calc
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM DOWNLOAD FILES
-ECHO "Getting Files"
-
-%EPMAUTO% downloadFile "inbox/Export_Lev0_Actuals_Cloud_EPM.txt" >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% Download
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-
-REM MOVING FILES
-ECHO "Moving Files"
-
-MOVE Export_Lev0_Actuals_Cloud_EPM.txt \Planning_Exports\Export_Lev0_Actuals_Cloud_EPM.txt >> %FILE_OUTLOG%
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM DELETING CLOUD FILES
-ECHO "Deleting Cloud Files"
-
-REM %EPMAUTO% deleteFile "outbox/Export_Lev0_Actuals_Cloud_EPM.txt" >> %FILE_OUTLOG%
-REM CALL _ProcLogger.bat %ErrorLevel% Delete
-REM IF %ErrorLevel% NEQ 0 GOTO ERROR
-REM ECHO: >> %FILE_OUTLOG%
-
-REM RUN CALCS
-REM ECHO "Running Calcs"  >> %FILE_OUTLOG%
-REM %EPMAUTO% runBusinessRule "C_Cpy" >> %FILE_OUTLOG%
-REM %EPMAUTO% runBusinessRule "Aggregate_ActMonth" >> %FILE_OUTLOG%
-REM CALL  _ProcLogger.bat %ErrorLevel% Agg
-REM IF %ErrorLevel% NEQ 0 GOTO ERROR
-REM ECHO: >> %FILE_OUTLOG%
-
-REM Logout & Exit
-ECHO *** Logging Out: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% logout >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% Logout
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-
-ENDLOCAL
-EXIT /b 0
-
-:ERROR
-Powershell.exe -executionpolicy remotesigned -File %PATH_SCRIPTS%\MailNotification.ps1 %PROCESS_NAME%
-EXIT /b %ErrorLevel%
-
-
-@Echo off
-
-REM ************************************************
-REM ** Author:	Paul Hoch
-REM ************************************************
-
-
-
-SETLOCAL ENABLEDELAYEDEXPANSION
-REM Set Global Variables
-CALL  _Global.bat !RANDOM! %~n0
-
-SET PROCESS_NAME="Production Cloud Backup "
-SET APPNAME=FIN
-
-REM Log Cleanup
-cd %PATH_LOGS%\Archive
-%ZIP% a -sdel "LOG_ARCHIVE_%~n0_%TIMESTAMP%.zip" %PATH_LOGS%\%~n0*.log 1>nul
-REM Keep the last 50 runs
-for /f "skip=50 eol=: delims=" %%F in ('dir /b /o-d *.zip') do @del "%%F" 1>nul
-
-cd %PATH_SCRIPTS%
-
-REM Echo Start Time to Process Log
-ECHO PROCESS START TIME:    %TIMESTAMP% >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-ECHO: >> %FILE_PROCLOG%
-
-REM Login
-ECHO *** Logging In: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% login %PBCS_USER% %PBCS_PASSFILE% % PBCS_URL% %PBCS_DOMAIN% >> %FILE_OUTLOG%
-
-CALL  _ProcLogger.bat %ErrorLevel% Login
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-REM Download Backup
-ECHO *** Downloading Backup >> %FILE_OUTLOG%
-CALL  PROC_Backup.bat
-CALL  _ProcLogger.bat %ErrorLevel% BackupDownload
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-
-REM Logout & Exit
-ECHO *** Logging Out: %PBCS_USER% >> %FILE_OUTLOG%
-%EPMAUTO% logout >> %FILE_OUTLOG%
-CALL  _ProcLogger.bat %ErrorLevel% Logout
-IF %ErrorLevel% NEQ 0 GOTO ERROR
-ECHO: >> %FILE_OUTLOG%
-
-
-ENDLOCAL
-EXIT /b 0
-
-:ERROR
-Powershell.exe -executionpolicy remotesigned -File %PATH_SCRIPTS%\MailNotification.ps1 %PROCESS_NAME%
-EXIT /b %ErrorLevel%
-
-@echo off
-
-REM ************************************************
-REM ** Author:  Paul Hoch
-REM ** Purpose: Updates process Log with Relevant information
-REM ** Params:
-REM **      - %1 = Error Code
-REM **      - %2 = Current Process
-REM ************************************************
-
-FOR /f "tokens=2-4 delims=/ " %%a IN ('date /t') DO (set TMPDT=%%c%%a%%b)
-FOR /f "tokens=1-2 delims=/:/ " %%a IN ('time /t') DO (set TMPTM=%%a%%b)
-SET TMPTM=%TMPTM: =% 
-SET CURTIME=%TMPDT%_%TMPTM%
-ECHO *** %2 Finished: %CURTIME% >> %FILE_OUTLOG%
-
-ECHO  *** Process %2: Error Level %1
-
-CALL :GetMsg_%1
-
-IF %1 EQU 0 (
-    ECHO ************************************************** >> %FILE_PROCLOG%
-    ECHO ** SUCCESS:        %2                              >> %FILE_PROCLOG%
-    ECHO ** CURRENT TIME:   %CURTIME%                       >> %FILE_PROCLOG%
-    ECHO ** ERROR CODE:         %1                          >> %FILE_PROCLOG%
-    ECHO ** MESSAGE:        %MSG%                           >> %FILE_PROCLOG%
-    ECHO ************************************************** >> %FILE_PROCLOG%
-    ECHO:                                                   >> %FILE_PROCLOG%
-) ELSE (
-    ECHO *******************ALERT************************** >> %FILE_PROCLOG%
-    ECHO **
-	ECHO ** FAILURE:        %2                              >> %FILE_PROCLOG%
-    ECHO ** CURRENT TIME:   %CURTIME%                       >> %FILE_PROCLOG%
-    ECHO ** ERROR CODE:         %1                          >> %FILE_PROCLOG%
-    ECHO ** MESSAGE:        %MSG%                           >> %FILE_PROCLOG%
-    ECHO **                                                 >> %FILE_PROCLOG%
-    ECHO ** STOPPING ALL REMAINING TASKS                    >> %FILE_PROCLOG%
-    ECHO **                                                 >> %FILE_PROCLOG%
-    ECHO ************************************************** >> %FILE_PROCLOG%
-    ECHO:                                                   >> %FILE_PROCLOG%
-    %EPMAUTO% logout
-    ENDLOCAL
-    EXIT /b %1
-)
-
-:GetMsg_
-    SET MSG=Error Code Not Found
-    GOTO :EOF
-:GetMsg_0
-    SET MSG=Operation Completed Without Errors
-    GOTO :EOF
-:GetMsg_1
-    SET MSG=Operation Failed to Execute Because of an Error
-    GOTO :EOF
-:GetMsg_2
-    SET MSG=Cancel Pending
-    GOTO :EOF
-:GetMsg_3
-    SET MSG=Operation was Terminated By The User
-    GOTO :EOF
-:GetMsg_4
-    SET MSG=Incorrect Parameters
-    GOTO :EOF
-:GetMsg_5
-    SET MSG=Insufficient Privileges
-    GOTO :EOF
-:GetMsg_6
-    SET MSG=Service is not Available
-    GOTO :EOF
-:GetMsg_7
-    SET MSG=Invalid Command
-    GOTO :EOF
-:GetMsg_8
-    SET MSG=Invalid Parameter
-    GOTO :EOF
-:GetMsg_9
-    SET MSG=Invalid User Name, Password or Identity Domain
-    GOTO :EOF
-:GetMsg_10
-    SET MSG=Expired Password
-    GOTO :EOF
-:GetMsg_11
-    SET MSG=Service is not Available
-    GOTO :EOF
-
-
-@echo off
-REM SETLOCAL ENABLEDELAYEDEXPANSION
-REM ************************************************
-REM ** Author:  Paul Hoch
-REM ************************************************
-
-REM ********************************
-REM Global Information
-REM ********************************
-FOR /f "tokens=2-4 delims=/ " %%a IN ('date /t') DO (set TMPDT=%%c%%a%%b) 1>nul
-FOR /f "tokens=1-2 delims=/:/ " %%a IN ('time /t') DO (set TMPTM=%%a%%b) 1>nul
-SET TIMESTAMP=%TMPDT%_%TMPTM%
-REM Set to path of EPMAutomate
-SET EPMAUTO=CALL epmautomate 
-SET ZIP="c:\Progra~1\7-Zip\7z.exe"
-
-SET EPM_SID=%1
-SET CALLING_BATCH=%2
-
-REM ********************************
-REM File & Path Information
-REM ********************************
-SET PATH_AUTO=E:\
-SET PATH_GLOBAL=%PATH_AUTO%\00_Global
-SET PATH_SCRIPTS=%PATH_AUTO%\01_Scripts
-SET PATH_LOGS=%PATH_AUTO%\02_Logs
-SET PATH_DATA=%PATH_AUTO%\03_Files\Data
-SET PATH_METADATA=%PATH_AUTO%\03_Files\Metadata
-SET PATH_BACKUPS=%PATH_AUTO%\04_Backups
-SET FILE_PROCLOG=%PATH_LOGS%\%CALLING_BATCH%_PROC_LOG.log
-SET FILE_OUTLOG=%PATH_LOGS%\%CALLING_BATCH%_FULL_LOG.log
-
-REM ********************************
-REM Planning Login Information
-REM ********************************
-SET PBCS_USER=EPM
-SET PBCS_PASSFILE=%PATH_GLOBAL%\epm.epw
-SET PBCS_DOMAIN=domain
-
-SET  PBCS_URL=https://PBCS.epm.us-phoenix-1.ocs.oraclecloud.com/HyperionPlanning
-
-SET HP_BKUP_FILE="Artifact Snapshot"
-
-
-REM ********************************
-REM Email Information
-REM ********************************
-SET EMAIL_SERVER=smtp.com
-SET EMAIL_FROM=it@domain.com
-SET EMAIL_TO=admin@domain.com
